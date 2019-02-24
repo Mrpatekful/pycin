@@ -53,7 +53,7 @@ result = (
 print(result)
 ```
 
-Outputs:
+Output:
 
 ```
 [Movie(id='3208d2r', name='Boldog Halálnapot 2', attributes=['16-plus', '2d', 'dubbed', 'dubbed-lang-hu', 'horror', 'mystery', 'thriller'], length=100), Movie(id='3265d2r', name='A csodagyerek', attributes=['16-plus', '2d', 'dubbed', 'dubbed-lang-hu', 'horror', 'thriller'], length=92)]
