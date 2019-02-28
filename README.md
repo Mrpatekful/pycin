@@ -2,8 +2,7 @@
 
 ## Description
 
-Each query has to originate from a `_CinemaQueryResult` object, which can be obtained by
-either `fetch_cinemas()` or `fetch_common_cinemas()` method. The latter only lists the most popular cinemas of Budapest. By calling `_CinemaQueryResult.fetch_events()` the returned `_EventQueryResult` object contains the events of the cinames in that particular `_CinemaQueryResult` object. To obtain the cinemas or the events in the cinemas, call `_QueryResult.select()`. `_QueryResult.where()` method applies a filter on the object and returns a new one, based on a predicate function.
+This framework provides a Python interface for the CinemaCity data API. To fetch location or date data of the screenings, call `search_events(cinemas, dates)` with the required cinemas and dates. The possible cinemas are wrapped into a `Cinema` namedtuple object, and are available as constants in the package (e.g. ALLE or DUNA_PLAZA). The dates have to be provided as datetime objects. By executing the `search_events` query, the returned object is a `Query`, that holds the available events. These events are stored as an iterable inside the `Query` object. To search for an event with a specific attribute (e.g. an event with a particular movie) the `filter()` method should be used. This method has an optional parameter, which is a function, that serves as a predicate to filter the events. Note that the return value of this function is another `Query` object, thus the method can be chained. To retrieve a specific field from the event, use the `select()` method, which also accepts a function as a parameter and maps this function to the contained iterator. The returned list is the output of this method for each event element.
 
 ## Example usage
 
@@ -16,7 +15,7 @@ from pycin import fetch_cinemas
 
 cinemas = fetch_cinemas()
 
-print(cinemas.select())
+print(cinemas)
 ```
 
 Output:
@@ -25,29 +24,15 @@ Output:
 [Cinema(id='1124', name='Alba - Székesfehérvár'), Cinema(id='1133', name='Allee - Budapest'), Cinema(id='1132', name='Aréna - Budapest'), Cinema(id='1131', name='Balaton - Veszprém'), Cinema(id='1139', name='Campona - Budapest'), Cinema(id='1127', name='Debrecen'), Cinema(id='1141', name='Duna Pláza - Budapest'), Cinema(id='1125', name='Győr'), Cinema(id='1129', name='Miskolc'), Cinema(id='1143', name='Nyíregyháza'), Cinema(id='1128', name='Pécs'), Cinema(id='1134', name='Savaria - Szombathely'), Cinema(id='1136', name='Sopron'), Cinema(id='1126', name='Szeged'), Cinema(id='1130', name='Szolnok'), Cinema(id='1137', name='Westend - Budapest'), Cinema(id='1135', name='Zalaegerszeg')]
 ```
 
-If there are no arguments provided for the `select()` method it returns the `_cinemas` field. The output of this function can be customized by feeding the name of the parameters of the `Cinema` namedtuple objects.
-
-```python
-print(cinemas.select('name'))
-```
-
-Output:
-
-```
-[('Alba - Székesfehérvár',), ('Allee - Budapest',), ('Aréna - Budapest',), ('Balaton - Veszprém',), ('Campona - Budapest',), ('Debrecen',), ('Duna Pláza - Budapest',), ('Győr',), ('Miskolc',), ('Nyíregyháza',), ('Pécs',), ('Savaria - Szombathely',), ('Sopron',), ('Szeged',), ('Szolnok',), ('Westend - Budapest',), ('Zalaegerszeg',)]
-```
-
 Fetching the events in the cinema *Alle*, where the screened movie is a horror.
 
 ```python
 
-from pycin import ALLE
+query = search_events()
 
-result = (
-    cinemas.where(lambda c: c.id == ALLE.id)
-        .fetch_events()
-        .where(lambda e: 'horror' in e.movie.attributes)
-        .movies
+result = list(
+    query.filter(lambda e: e.movie.id == '3196o2r')
+    .select(lambda e: (e.date, e.cinema.name))
 )
 
 print(result)
@@ -56,5 +41,5 @@ print(result)
 Output:
 
 ```
-[Movie(id='3208d2r', name='Boldog Halálnapot 2', attributes=['16-plus', '2d', 'dubbed', 'dubbed-lang-hu', 'horror', 'mystery', 'thriller'], length=100), Movie(id='3265d2r', name='A csodagyerek', attributes=['16-plus', '2d', 'dubbed', 'dubbed-lang-hu', 'horror', 'thriller'], length=92)]
+[(datetime.datetime(2019, 2, 28, 17, 40), 'Allee - Budapest'), (datetime.datetime(2019, 2, 28, 19, 50), 'Allee - Budapest'), (datetime.datetime(2019, 2, 28, 22, 0), 'Allee - Budapest'), (datetime.datetime(2019, 2, 28, 17, 20), 'Alba - Székesfehérvár'), (datetime.datetime(2019, 2, 28, 19, 30), 'Alba - Székesfehérvár')]
 ```
