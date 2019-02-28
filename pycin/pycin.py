@@ -100,13 +100,14 @@ def search_events(dates, cinemas=BUDAPEST_CINEMAS):
     assert isinstance(cinemas, list)
     assert isinstance(dates, list)
 
+    dates = {datetime.strftime(d, DATE_FORMAT) for d in dates}
+
     movies, events = {}, {}
 
     for cinema in cinemas:
         for date in dates:
-            date_string = datetime.strftime(date, DATE_FORMAT)
             raw_movies, raw_events = fetch_raw_events(
-                cinema, date_string)
+                cinema, date)
             
             for movie in raw_movies:
                 if movie['id'] not in movies:
@@ -163,7 +164,7 @@ def create_movie(**parameters):
 
 def create_cinema(**parameters):
     """Convenience method for creating `Cinema` object."""
-    return Movie(
+    return Cinema(
         id=parameters['id'],
         name=parameters['displayName'])
 
