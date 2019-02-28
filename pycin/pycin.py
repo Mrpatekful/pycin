@@ -105,7 +105,8 @@ def search_events(dates, cinemas=BUDAPEST_CINEMAS):
     for cinema in cinemas:
         for date in dates:
             date_string = datetime.strftime(date, DATE_FORMAT)
-            raw_movies, raw_events = fetch_raw_events(cinema, date_string)
+            raw_movies, raw_events = fetch_raw_events(
+                cinema, date_string)
             
             for movie in raw_movies:
                 if movie['id'] not in movies:
@@ -132,7 +133,8 @@ def fetch_cinemas(predicate=lambda cinema: True):
         list of the available cinemas.
     """
     cinemas = (
-        create_cinema(**cinema) for cinema in fetch_raw_cinemas(UNTIL_DATE)
+        create_cinema(**cinema) for 
+        cinema in fetch_raw_cinemas(UNTIL_DATE)
     )
 
     return [cinema for cinema in cinemas if predicate(cinema)]
@@ -144,7 +146,8 @@ def create_event(**parameters):
         id=parameters['id'],
         movie=parameters['movie'],
         cinema=parameters['cinema'],
-        date=datetime.strptime(parameters['eventDateTime'], EVENT_DATE_FORMAT),
+        date=datetime.strptime(
+            parameters['eventDateTime'], EVENT_DATE_FORMAT),
         sold_out=parameters['soldOut'],
         booking_link=parameters['bookingLink'])
 
@@ -167,7 +170,18 @@ def create_cinema(**parameters):
 
 @lru_cache(maxsize=64)
 def fetch_raw_events(cinema, date):
-    """"""
+    """Fetches the event data from the CinemaCity data API.
+    The results are cached with lru_caching.
+
+    Arguments:
+        cinema: a `Cinema` type namedtuple object.
+        date: str, a date formated according to `DATE_FORMAT`
+            constant.
+
+    Returns:
+        The fetched data of films and events in a tuple of
+        dictionaries.
+    """
     response = requests.get(EVENT_URL.format(
         data_api_url=DATA_API_URL, id=cinema.id,
         date=date, lang=DEFAULT_LANG))
@@ -181,7 +195,17 @@ def fetch_raw_events(cinema, date):
 
 @lru_cache(maxsize=8)
 def fetch_raw_cinemas(until_date):
-    """"""
+    """Fetches the cinema data from the CinemaCity data API.
+    The results are cached with lru_caching.
+
+    Arguments:
+        until_date: str, a date that is formatted, described
+            by the `DATE_FORMAT`.
+
+    Returns:
+        The fetched data of films and events in a tuple of
+        dictionaries.
+    """
     response = requests.get(CINEMA_URL.format(
         data_api_url=DATA_API_URL, until_date=until_date, 
         lang=DEFAULT_LANG))
