@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from pycin.pycin import search_events, ALLE, ALBA
+from pycin import search_events, ALLE, ALBA
 
 
 def main():

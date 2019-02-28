@@ -28,7 +28,10 @@ Fetching the events in the cinema *Alle*, where the screened movie is a horror.
 
 ```python
 
-query = search_events()
+from datetime import datetime
+from pycin import ALLE, WESTEND
+
+query = search_events([datetime.today()], [ALLE, WESTEND])
 
 result = list(
     query.filter(lambda e: e.movie.id == '3196o2r')
