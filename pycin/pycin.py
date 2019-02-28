@@ -158,7 +158,7 @@ def create_movie(**parameters):
     return Movie(
         id=parameters['id'],
         name=parameters['name'],
-        attributes=parameters['attributeIds'],
+        attributes=tuple(parameters['attributeIds']),
         length=parameters['length'])
 
 
