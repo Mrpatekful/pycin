@@ -10,9 +10,9 @@ import requests
 import time
 import json
 
+from collections import Iterable
 from collections import namedtuple
 from functools import lru_cache
-from itertools import chain
 
 from datetime import datetime
 
@@ -71,7 +71,7 @@ WESTEND = Cinema('1137', 'Westend - Budapest')
 ZALAEGERSZEG = Cinema('1135', 'Zalaegerszeg')
 
 
-ALL_CINEMAS = [
+CINEMAS = [
     ALBA, ALLE, ARENA, BALATON, CAMPONA, DEBRECEN,
     DUNA_PLAZA, GYOR, MISKOLC, NYIREGYHAZA, PECS, SAVARIA,
     SOPRON, SZEGED, SZOLNOK, WESTEND, ZALAEGERSZEG
@@ -97,8 +97,8 @@ def search_events(dates, cinemas=BUDAPEST_CINEMAS):
     Returns:
         Query object, that holds the requested events.
     """
-    assert isinstance(cinemas, list)
-    assert isinstance(dates, list)
+    assert isinstance(cinemas, Iterable)
+    assert isinstance(dates, Iterable)
 
     dates = {datetime.strftime(d, DATE_FORMAT) for d in dates}
 

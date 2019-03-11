@@ -14,7 +14,7 @@ from .pycin import (ALBA, ALLE, ARENA,
                     NYIREGYHAZA, PECS, SAVARIA,
                     SOPRON, SZEGED, SZOLNOK,
                     WESTEND, ZALAEGERSZEG)
-from .pycin import ALL_CINEMAS, BUDAPEST_CINEMAS
+from .pycin import CINEMAS, BUDAPEST_CINEMAS
 
 
 
@@ -38,6 +38,6 @@ __all__ = [
     'SZOLNOK',
     'WESTEND', 
     'ZALAEGERSZEG',
-    'ALL_CINEMAS',
+    'CINEMAS',
     'BUDAPEST_CINEMAS'
 ]
