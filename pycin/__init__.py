@@ -7,7 +7,7 @@
 @date:      2019.02.24.
 """
 
-from .pycin import search_events, fetch_cinemas
+from .pycin import search_events, fetch_cinemas, logger
 from .pycin import (ALBA, ALLE, ARENA,
                     BALATON, CAMPONA, DEBRECEN,
                     DUNA_PLAZA, GYOR, MISKOLC,
@@ -21,6 +21,7 @@ from .pycin import CINEMAS, BUDAPEST_CINEMAS
 __all__ = [
     'search_events',
     'fetch_cinemas',
+    'logger',
     'ALBA', 
     'ALLE', 
     'ARENA',

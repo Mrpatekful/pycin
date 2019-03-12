@@ -9,10 +9,11 @@
 import requests
 import time
 import json
+import logging
 
 from collections import Iterable
 from collections import namedtuple
-from functools import lru_cache
+from functools import lru_cache, wraps
 
 from datetime import datetime
 
@@ -21,7 +22,8 @@ DATE_FORMAT = '%Y-%m-%d'
 EVENT_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
 UNTIL_DATE = '2020-12-31'
 
-DEFAULT_LANG = 'en_GB'
+# Available languages are `en_GB` or `hu_HU`
+LANGUAGE = 'en_GB'
 
 DATA_API_URL = 'https://www.cinemacity.hu/en/data-api-service/v1/quickbook/10102/'
 EVENT_URL = '{data_api_url}/film-events/in-cinema/{id}/at-date/{date}?attr=&lang={lang}'
@@ -36,7 +38,8 @@ Movie = namedtuple('Movie', ['id', 'name', 'attributes', 'length'])
 :param length: int -- length of the movie in minutes.
 """
 
-Event = namedtuple('Event', ['id', 'booking_link', 'movie', 'cinema', 'date', 'sold_out'])
+Event = namedtuple('Event', ['id', 'booking_link', 'movie', 'cinema', 
+                             'date', 'sold_out', 'attributes'])
 """Namedtuple, holding the information of an event.
 :param id: str -- unique identifier.
 :param booking_link: str -- url for the booking link.
@@ -83,22 +86,39 @@ BUDAPEST_CINEMAS = [
 ]
 
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+
+def logged(func):
+    """Wraps a function and logs its process"""
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        logger.debug('Query finished in {:.4f}s.'.format(time.time() - start))
+        return result
+    return wrapped
+
+
 def search_events(dates, cinemas=BUDAPEST_CINEMAS):
     """Fetches the events, which are held in the provided
-    cinemas at the provided dates. The events are requested from
+    cinemas on the provided dates. The events are requested from
     the CinemaCity API through the `DATA_API_URL` `EVENT_URL`.
-    
+    Note, that this function may take several seconds since it
+    accesses the data endpoint `len(dates) * len(cinemas)` times.
+
     Arguments:
-        cinemas: list, containing `Cinema` type namedtuple
+        cinemas: Iterable, containing `Cinema` type namedtuple
             objects, for which the events will be fetched.
-        dates: list, containing datetime objects, which are
+        dates: Iterable, containing datetime objects, which are
             the dates of the requested events.
             
     Returns:
         Query object, that holds the requested events.
     """
-    assert isinstance(cinemas, Iterable)
-    assert isinstance(dates, Iterable)
+    assert isinstance(cinemas, Iterable), 'Cinemas must be an `Iterable`.'
+    assert isinstance(dates, Iterable), 'Dates must be an `Iterable`.'
 
     dates = {datetime.strftime(d, DATE_FORMAT) for d in dates}
 
@@ -150,7 +170,8 @@ def create_event(**parameters):
         date=datetime.strptime(
             parameters['eventDateTime'], EVENT_DATE_FORMAT),
         sold_out=parameters['soldOut'],
-        booking_link=parameters['bookingLink'])
+        booking_link=parameters['bookingLink'],
+        attributes=tuple(parameters['attributeIds']))
 
 
 def create_movie(**parameters):
@@ -169,7 +190,8 @@ def create_cinema(**parameters):
         name=parameters['displayName'])
 
 
-@lru_cache(maxsize=64)
+@logged
+@lru_cache(maxsize=128)
 def fetch_raw_events(cinema, date):
     """Fetches the event data from the CinemaCity data API.
     The results are cached with lru_caching.
@@ -185,7 +207,7 @@ def fetch_raw_events(cinema, date):
     """
     response = requests.get(EVENT_URL.format(
         data_api_url=DATA_API_URL, id=cinema.id,
-        date=date, lang=DEFAULT_LANG))
+        date=date, lang=LANGUAGE))
 
     data = json.loads(response.text)['body']
 
@@ -194,10 +216,10 @@ def fetch_raw_events(cinema, date):
     return data['films'], data['events']
     
 
-@lru_cache(maxsize=8)
+@logged
+@lru_cache(maxsize=1)
 def fetch_raw_cinemas(until_date):
     """Fetches the cinema data from the CinemaCity data API.
-    The results are cached with lru_caching.
 
     Arguments:
         until_date: str, a date that is formatted, described
@@ -209,7 +231,7 @@ def fetch_raw_cinemas(until_date):
     """
     response = requests.get(CINEMA_URL.format(
         data_api_url=DATA_API_URL, until_date=until_date, 
-        lang=DEFAULT_LANG))
+        lang=LANGUAGE))
 
     data = json.loads(response.text)['body']
 
