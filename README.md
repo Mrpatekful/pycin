@@ -6,18 +6,34 @@ This framework provides a Python interface for the CinemaCity data API. Fetching
 
 ### Entities
 
-`Cinema` is the representation of a Cinema City venue like *Cinema City Alle*. This entity has an `id` and `name` fields.
-`Movie` refers to a movie which can be screened at multiple cinemas on multiple events. It has a unique `id` field, a `name` that is the movie title. The `attributes` field contains movie specific information like dubbing or 3D in a tuple. `length` field stores the movie's length in minutes.
-`Event` also has a unique `id` field and several supplementary fields like `booking_link` and `sold_out`. The `date` field is a Python `datetime` object, which stores the begining time of the movie screening. The `movie` and `cinema` fields hold the venue of the movie screening as a `Cinema` type object and the screened movie as a `Movie` type object. The `attributes` field contains movie and event specific informations in a tuple.
+**`Cinema`**
+
+- `id` *( `str`, the unique identifier of a venue. )*
+- `name` *( `str`, the name of a venue. )*
+
+**`Movie`**
+
+- `id` *( `str`, the unique identifier of a movie. )*
+- `name` *( `str`, the name of a venue. )*
+- `attributes` *( `tuple`, movie specific information like dubbing or 3D. )*
+- `length` *( `int`, length of the movie in minutes. )*
+
+**`Event`**
+
+- `id` *( `str`, the unique identifier of an event. )*
+- `date` *( `datetime`, begining time of the movie screening. )*
+- `booking_link` *( `str`, url of the ticket booking link. )*
+- `sold_out` *( `bool`, availability of tickets. )*
+- `movie` *( `Movie`, the screened movie, stored as a `Movie` object. )*
+- `cinema` *( `Cinema`, the location of the event, stored as a `Cinema` object. )*
+- `attributes` *( `tuple`, movie specific information like dubbing or 3D. )*
 
 ## Example usage
 
 Fetching the available cinemas.
 
 ```python
-
 from pycin import fetch_cinemas
-
 
 cinemas = fetch_cinemas()
 
@@ -30,9 +46,8 @@ print(cinemas)
 Fetching the events in the cinema *Alle*, *Westend*, where the screened movie has the id *3196o2r*.
 
 ```python
-
 from datetime import datetime
-from pycin import ALLE, WESTEND
+from pycin import search_events, ALLE, WESTEND
 
 query = search_events([datetime.today()], [ALLE, WESTEND])
 
@@ -50,7 +65,6 @@ print(result)
 Finding the unique set of movies, which are played after 8:00 PM on the next week at any Cinema City in Budapest (because default location is `BUDAPEST_CINEMAS`).
 
 ```python
-
 from pycin import search_events
 from datetime import timedelta
 
@@ -72,7 +86,6 @@ print(result)
 The `search_events` may take longer to execute on the first call, but the results are cached, thus making subsequent calls yield results instantaneously.
 
 ```python
-
 import logging
 from datetime import datetime
 from pycin import search_events
