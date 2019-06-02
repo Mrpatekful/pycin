@@ -11,10 +11,8 @@ import time
 import json
 import logging
 
-from collections import Iterable
-from collections import namedtuple
+from collections import Iterable, namedtuple
 from functools import lru_cache, wraps
-
 from datetime import datetime
 
 
@@ -26,7 +24,7 @@ UNTIL_DATE = '2020-12-31'
 LANGUAGE = 'en_GB'
 
 DATA_API_URL = 'https://www.cinemacity.hu/en/data-api-service/v1/quickbook/10102/'
-EVENT_URL = '{data_api_url}/film-events/in-cinema/{id}/at-date/{date}?attr=&lang={lang}'
+EVENT_URL = '{data_api_url}film-events/in-cinema/{id}/at-date/{date}?attr=&lang={lang}'
 CINEMA_URL = '{data_api_url}cinemas/with-event/until/{until_date}?attr=&lang={lang}'
 
 
@@ -38,7 +36,7 @@ Movie = namedtuple('Movie', ['id', 'name', 'attributes', 'length'])
 :param length: int -- length of the movie in minutes.
 """
 
-Event = namedtuple('Event', ['id', 'booking_link', 'movie', 'cinema', 
+Event = namedtuple('Event', ['id', 'booking_link', 'movie', 'cinema',
                              'date', 'sold_out', 'attributes'])
 """Namedtuple, holding the information of an event.
 :param id: str -- unique identifier.
@@ -56,8 +54,8 @@ Cinema = namedtuple('Cinema', ['id', 'name'])
 """
 
 ALBA = Cinema('1124', 'Alba - Székesfehérvár')
-ALLE = Cinema('1133', 'Allee - Budapest' )
-ARENA = Cinema('1132', 'Aréna - Budapest' ) 
+ALLE = Cinema('1133', 'Allee - Budapest')
+ARENA = Cinema('1132', 'Aréna - Budapest')
 BALATON = Cinema('1131', 'Balaton - Veszprém')
 CAMPONA = Cinema('1139', 'Campona - Budapest')
 DEBRECEN = Cinema('1127', 'Debrecen')
@@ -101,7 +99,7 @@ def logged(func):
     return wrapped
 
 
-def search_events(dates, cinemas=BUDAPEST_CINEMAS):
+def fetch_events(dates, cinemas=BUDAPEST_CINEMAS):
     """Fetches the events, which are held in the provided
     cinemas on the provided dates. The events are requested from
     the CinemaCity API through the `DATA_API_URL` `EVENT_URL`.
@@ -113,7 +111,7 @@ def search_events(dates, cinemas=BUDAPEST_CINEMAS):
             objects, for which the events will be fetched.
         dates: Iterable, containing datetime objects, which are
             the dates of the requested events.
-            
+
     Returns:
         Query object, that holds the requested events.
     """
@@ -128,33 +126,33 @@ def search_events(dates, cinemas=BUDAPEST_CINEMAS):
         for date in dates:
             raw_movies, raw_events = fetch_raw_events(
                 cinema, date)
-            
+
             for movie in raw_movies:
                 if movie['id'] not in movies:
                     movies[movie['id']] = create_movie(**movie)
 
             for event in raw_events:
                 events[event['id']] = create_event(
-                    movie=movies[event['filmId']], 
+                    movie=movies[event['filmId']],
                     cinema=cinema,
                     **event)
-    
+
     return Query(e for e in events.values())
 
 
 def fetch_cinemas(predicate=lambda cinema: True):
     """Fetches the cinemas from the CinemaCity API through
     the `DATA_API_URL` `CINEMA_URL`.
-    
+
     Arguments:
         predicate: an optional predicate function for filtering
             the returned cinemas. By default all cinemas are listed.
-    
+
     Returns:
         list of the available cinemas.
     """
     cinemas = (
-        create_cinema(**cinema) for 
+        create_cinema(**cinema) for
         cinema in fetch_raw_cinemas(UNTIL_DATE)
     )
 
@@ -214,7 +212,7 @@ def fetch_raw_events(cinema, date):
     time.sleep(0.1)
 
     return data['films'], data['events']
-    
+
 
 @logged
 @lru_cache(maxsize=1)
@@ -230,7 +228,7 @@ def fetch_raw_cinemas(until_date):
         dictionaries.
     """
     response = requests.get(CINEMA_URL.format(
-        data_api_url=DATA_API_URL, until_date=until_date, 
+        data_api_url=DATA_API_URL, until_date=until_date,
         lang=LANGUAGE))
 
     data = json.loads(response.text)['body']
@@ -248,7 +246,7 @@ class Query:
     def filter(self, predicate=lambda event: True):
         """Selects the subset of the querried elements, 
         based on the provided predicate function.
-        
+
         Arguments:
             predicate: function, that returns bool value.
         """
@@ -257,7 +255,7 @@ class Query:
     def select(self, selector=lambda event: event):
         """Lists the event attribute values, which are selected 
         vy the selector funciton.
-        
+
         Arguments:
             selector: a function that receives an event type and
                 returns a value. 
