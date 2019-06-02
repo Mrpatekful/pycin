@@ -70,7 +70,7 @@ print(result)
 {'Kölcsönlakás', 'Cold Pursuit', 'Happy DeathDay 2U', 'Instant Family', 'Heavy Trip (Hevi Reissu)', 'Sink or Swim (Le grand bain)', 'Alita: Battle Angel', 'Most van most', 'En Liberté (The Trouble with You)', 'Bohemian Rhapsody', 'Vice', 'Apró mesék', 'Green Book', 'Drunk Parents', 'The Prodigy', 'Captain Marvel', 'Glass', 'Fighting with My Family'}
 ```
 
-The `search_events` may take longer to execute on the first call, but the results are cached, thus making subsequent calls yield results instantaneously.
+The `fetch_events` may take longer to execute on the first call, but the results are cached, thus making subsequent calls yield results instantaneously.
 
 ```python
 import logging
