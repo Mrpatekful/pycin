@@ -11,7 +11,7 @@ import time
 import json
 import logging
 
-from collections import Iterable, namedtuple
+from collections import Collection, namedtuple
 from functools import lru_cache, wraps
 from datetime import datetime
 
@@ -99,7 +99,7 @@ def logged(func):
     return wrapped
 
 
-def fetch_events(dates, cinemas=BUDAPEST_CINEMAS):
+def fetch_events(dates=None, cinemas=BUDAPEST_CINEMAS):
     """Fetches the events, which are held in the provided
     cinemas on the provided dates. The events are requested from
     the CinemaCity API through the `DATA_API_URL` `EVENT_URL`.
@@ -115,8 +115,11 @@ def fetch_events(dates, cinemas=BUDAPEST_CINEMAS):
     Returns:
         Query object, that holds the requested events.
     """
-    assert isinstance(cinemas, Iterable), 'Cinemas must be an `Iterable`.'
-    assert isinstance(dates, Iterable), 'Dates must be an `Iterable`.'
+    if dates is None:
+        dates = [datetime.today()]
+
+    assert isinstance(cinemas, Collection), 'Cinemas must be a `Collection`.'
+    assert isinstance(dates, Collection), 'Dates must be a `Collection`.'
 
     dates = {datetime.strftime(d, DATE_FORMAT) for d in dates}
 
